@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class Quiz {
@@ -38,9 +39,12 @@ public class Quiz {
             2. userInput != ":" --> Schleife soll weiterlaufen
          */
         String userInput = "";
-        while (!userInput.equals("weiter")) {
+        while (true) {
             System.out.println("Bitte gib deinen Spielernamen ein (oder 'weiter' zum Abbruch):");
             userInput = consoleScanner.nextLine();
+            if(userInput.equals("weiter")) {
+                break;
+            }
             playerNames.add(userInput);
             System.out.println("Willkommen im Spiel, " + userInput);
         }
@@ -48,30 +52,59 @@ public class Quiz {
             Alternativ könnte man bspw. über if(!userInput.equals("weiter")) {} in der Schleife prüfen, ob wir den
             Benutzer hinzufügen möchten oder nicht. Darüber lassen sich z. B. auch Mindestlängen für Benutzernamen ausgeben.
         */
-        playerNames.remove("weiter");
-
         System.out.println("Das Spiel kann beginnen!");
 
         String inGameInput = "";
         // Ermitteln, ob Ende des Spiels erreicht ist (über Anzahl der beantworteten Fragen)
         final int MAX_NUMBER_OF_ROUNDS = 10;
         int roundCounter = 0;
+        int currentPlayerIndex = 0;
+        int[] playerScores = new int[playerNames.size()];
         /* Solange Fragen stellen und auf Antworten warten, bis der Benutzer entweder "beenden" eingibt oder die
             maximale Anzahl an Runden erreicht ist */
-
-        while (!inGameInput.equals("beenden") && roundCounter < MAX_NUMBER_OF_ROUNDS) {
+        while (/*!inGameInput.equals("beenden") &&*/ roundCounter < MAX_NUMBER_OF_ROUNDS) {
             // Herausfinden, welcher Benutzer am Zug ist (Loop/Schleife)
-            // TODO: Hier seid ihr gefragt!
+            String currentPlayerName = playerNames.get(currentPlayerIndex);
+            System.out.println(currentPlayerName + " ist an der Reihe!");
+
+            // Frage stellen
+            int currentQuestionIndex = (int) (Math.random() * questions.size());
+            String currentQuestionText = questions.get(currentQuestionIndex);
+            System.out.println("Frage: " + currentQuestionText);
+
             // Benutzer soll seine Antwort eingeben
-            // TODO: Hier seid ihr gefragt!
+            System.out.println("Was ist deine Antwort?");
+            inGameInput = consoleScanner.nextLine();
+            if(inGameInput.equals("beenden")) {
+                System.out.println("Das Spiel wurde durch Spieler " + currentPlayerName + " abgebrochen");
+                break;
+            }
+
             // Anzeigen, ob Antwort richtig oder falsch war
-            // TODO: Hier seid ihr gefragt!
-            // Punktzahl erhöhen oder 0 Punkte vergeben
-            // TODO: Hier seid ihr gefragt!
-            roundCounter++;
+            String correctAnswerInLowerCaps = answers.get(currentQuestionIndex).toLowerCase();
+            if(correctAnswerInLowerCaps.equals(inGameInput.toLowerCase())) {
+                // Punktzahl erhöhen
+                System.out.println("Diese Antwort war richtig!");
+                playerScores[currentPlayerIndex]++;
+            } else {
+                // 0 Punkte vergeben
+                System.out.println("Diese Antwort war leider falsch. :(");
+            }
+
+            if(currentPlayerIndex == playerNames.size() - 1) {
+                System.out.println("Runde " + (roundCounter + 1) + " ist zu Ende.");
+                roundCounter++;
+            }
+
+            currentPlayerIndex = (currentPlayerIndex + 1) % playerNames.size(); // size = 3
+            // 1. Durchlauf: cPI = 0 -> (0 + 1 = 1) % 3 = 1
+            // 2. Durchlauf: cPI = 1 -> (1 + 1 = 2) % 3 = 2
+            // 3. Durchlauf: cPI = 2 -> (2 + 1 = 3) % 3 = 0
         }
 
         // Gewinner soll ausgegeben werden
-        // TODO: Hier seid ihr gefragt!
+        for(int i = 0; i < playerNames.size(); i++) {
+            System.out.println("Spieler " + playerNames.get(i) + " hat " + playerScores[i] + " Punkte");
+        }
     }
 }
