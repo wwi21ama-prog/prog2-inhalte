@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Scanner;
 
 public class Quiz {
@@ -28,7 +27,7 @@ public class Quiz {
         System.out.println("Frage: " + questions.get(20) + ", " + "Antwort: " + answers.get(20));
 
         // Benutzer soll Namen eingeben
-        List<String> playerNames = new ArrayList<>();
+        List<Player> players = new ArrayList<>();
         Scanner consoleScanner = new Scanner(System.in); // liest von der Konsole
 
         // Unterschiede: do {} while(), for {}, while{}
@@ -45,8 +44,11 @@ public class Quiz {
             if(userInput.equals("weiter")) {
                 break;
             }
-            playerNames.add(userInput);
-            System.out.println("Willkommen im Spiel, " + userInput);
+
+            Player newPlayer = new Player();
+            players.add(newPlayer);
+            newPlayer.name = userInput;
+            System.out.println("Willkommen im Spiel, " + newPlayer.name);
         }
         /* Nicht sehr elegante Lösung, aber wir wollen den Abbruchbefehl "weiter" nicht in unserer Spielerliste haben
             Alternativ könnte man bspw. über if(!userInput.equals("weiter")) {} in der Schleife prüfen, ob wir den
@@ -59,13 +61,12 @@ public class Quiz {
         final int MAX_NUMBER_OF_ROUNDS = 10;
         int roundCounter = 0;
         int currentPlayerIndex = 0;
-        int[] playerScores = new int[playerNames.size()];
         /* Solange Fragen stellen und auf Antworten warten, bis der Benutzer entweder "beenden" eingibt oder die
             maximale Anzahl an Runden erreicht ist */
         while (/*!inGameInput.equals("beenden") &&*/ roundCounter < MAX_NUMBER_OF_ROUNDS) {
             // Herausfinden, welcher Benutzer am Zug ist (Loop/Schleife)
-            String currentPlayerName = playerNames.get(currentPlayerIndex);
-            System.out.println(currentPlayerName + " ist an der Reihe!");
+            Player currentPlayer = players.get(currentPlayerIndex);
+            System.out.println(currentPlayer.name + " ist an der Reihe!");
 
             // Frage stellen
             int currentQuestionIndex = (int) (Math.random() * questions.size());
@@ -76,7 +77,7 @@ public class Quiz {
             System.out.println("Was ist deine Antwort?");
             inGameInput = consoleScanner.nextLine();
             if(inGameInput.equals("beenden")) {
-                System.out.println("Das Spiel wurde durch Spieler " + currentPlayerName + " abgebrochen");
+                System.out.println("Das Spiel wurde durch Spieler " + currentPlayer.name + " abgebrochen");
                 break;
             }
 
@@ -85,26 +86,27 @@ public class Quiz {
             if(correctAnswerInLowerCaps.equals(inGameInput.toLowerCase())) {
                 // Punktzahl erhöhen
                 System.out.println("Diese Antwort war richtig!");
-                playerScores[currentPlayerIndex]++;
+                currentPlayer.score++;
             } else {
                 // 0 Punkte vergeben
                 System.out.println("Diese Antwort war leider falsch. :(");
             }
 
-            if(currentPlayerIndex == playerNames.size() - 1) {
+            if(currentPlayerIndex == players.size() - 1) {
                 System.out.println("Runde " + (roundCounter + 1) + " ist zu Ende.");
                 roundCounter++;
             }
 
-            currentPlayerIndex = (currentPlayerIndex + 1) % playerNames.size(); // size = 3
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.size(); // size = 3
             // 1. Durchlauf: cPI = 0 -> (0 + 1 = 1) % 3 = 1
             // 2. Durchlauf: cPI = 1 -> (1 + 1 = 2) % 3 = 2
             // 3. Durchlauf: cPI = 2 -> (2 + 1 = 3) % 3 = 0
         }
 
         // Gewinner soll ausgegeben werden
-        for(int i = 0; i < playerNames.size(); i++) {
-            System.out.println("Spieler " + playerNames.get(i) + " hat " + playerScores[i] + " Punkte");
+        for(int i = 0; i < players.size(); i++) {
+            Player player = players.get(i);
+            System.out.println("Spieler " + player.name + " hat " + player.score + " Punkte");
         }
     }
 }
