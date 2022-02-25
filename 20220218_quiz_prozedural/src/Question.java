@@ -1,6 +1,7 @@
 public class Question {
     String questionText;
     Answer answer;
+    int points = 1;
 
     void printQuestion() {
         System.out.println("Frage: " + this.questionText);

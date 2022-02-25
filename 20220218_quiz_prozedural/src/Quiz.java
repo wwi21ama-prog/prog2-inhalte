@@ -15,6 +15,12 @@ public class Quiz {
             // Fragen generieren
             Question question = new Question();
             question.questionText = "Frage " + (i + 1);
+            question.points = (i % 5 == 0) ? 5 : 1;
+            /*if(i % 5 == 0) {
+                question.points = 5;
+            } else {
+                question.points = 1;
+            }*/
             question.answer = new Answer();
             question.answer.answerText = "Antwort " + (i + 1);
             questions.add(question);
@@ -78,9 +84,10 @@ public class Quiz {
                 break;
             }
 
-            // TODO: Antwort überprüfen
+            // Antwort überprüfen
             if(currentQuestion.checkAnswer(inGameInput)) {
-                currentPlayer.score++;
+                currentPlayer.score += currentQuestion.points;
+                // gleichbedeutend mit: currentPlayer.score = currentPlayer.score + currentQuestion.points;
             }
 
             if(currentPlayerIndex == players.size() - 1) {
