@@ -4,7 +4,7 @@ public class Player {
     int score = 0;
 
     void printName() {
-        System.out.println("Ich bin Spieler " + this.name);
+        System.out.println("Hallo, ich bin Spieler " + this.name);
     }
 
     void printScore() {

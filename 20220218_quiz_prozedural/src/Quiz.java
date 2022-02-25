@@ -10,21 +10,16 @@ public class Quiz {
 
         // Fragekatalog inkl. Antworten (Freitext) generieren
         // Wir nehmen hier vorerst einen (fehleranfälligeren) Ansatz mit zwei Listen für Fragen und Antworten
-        List<String> questions = new ArrayList<>();
+        List<Question> questions = new ArrayList<>();
         for (int i = 0; i < 40; i++) {
             // Fragen generieren
-            questions.add("Frage " + (i + 1));
+            Question question = new Question();
+            question.questionText = "Frage " + (i + 1);
+            question.answer = new Answer();
+            question.answer.answerText = "Antwort " + (i + 1);
+            questions.add(question);
         }
         System.out.println(questions.size()); // Erwartete Ausgabe: 40
-        List<String> answers = new ArrayList<>();
-        for (int i = 0; i < 40; i++) {
-            // Antworten generieren
-            answers.add("Antwort " + (i + 1));
-        }
-        System.out.println(answers.size()); // Erwartete Ausgabe: 40
-
-        // "Sichtprüfung": Stehen die richtigen Antworten am gleichen Index wie die jeweilige Frage?
-        System.out.println("Frage: " + questions.get(20) + ", " + "Antwort: " + answers.get(20));
 
         // Benutzer soll Namen eingeben
         List<Player> players = new ArrayList<>();
@@ -48,7 +43,8 @@ public class Quiz {
             Player newPlayer = new Player();
             players.add(newPlayer);
             newPlayer.name = userInput;
-            System.out.println("Willkommen im Spiel, " + newPlayer.name);
+            newPlayer.printName();
+            // System.out.println("Willkommen im Spiel, " + newPlayer.name);
         }
         /* Nicht sehr elegante Lösung, aber wir wollen den Abbruchbefehl "weiter" nicht in unserer Spielerliste haben
             Alternativ könnte man bspw. über if(!userInput.equals("weiter")) {} in der Schleife prüfen, ob wir den
@@ -70,7 +66,8 @@ public class Quiz {
 
             // Frage stellen
             int currentQuestionIndex = (int) (Math.random() * questions.size());
-            String currentQuestionText = questions.get(currentQuestionIndex);
+            Question currentQuestion = questions.get(currentQuestionIndex);
+            String currentQuestionText = currentQuestion.questionText;
             System.out.println("Frage: " + currentQuestionText);
 
             // Benutzer soll seine Antwort eingeben
@@ -81,15 +78,9 @@ public class Quiz {
                 break;
             }
 
-            // Anzeigen, ob Antwort richtig oder falsch war
-            String correctAnswerInLowerCaps = answers.get(currentQuestionIndex).toLowerCase();
-            if(correctAnswerInLowerCaps.equals(inGameInput.toLowerCase())) {
-                // Punktzahl erhöhen
-                System.out.println("Diese Antwort war richtig!");
+            // TODO: Antwort überprüfen
+            if(currentQuestion.checkAnswer(inGameInput)) {
                 currentPlayer.score++;
-            } else {
-                // 0 Punkte vergeben
-                System.out.println("Diese Antwort war leider falsch. :(");
             }
 
             if(currentPlayerIndex == players.size() - 1) {
@@ -106,7 +97,7 @@ public class Quiz {
         // Gewinner soll ausgegeben werden
         for(int i = 0; i < players.size(); i++) {
             Player player = players.get(i);
-            System.out.println("Spieler " + player.name + " hat " + player.score + " Punkte");
+            player.printScore();
         }
     }
 }
