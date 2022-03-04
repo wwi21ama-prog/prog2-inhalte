@@ -13,8 +13,8 @@ public class Project {
         this.tasks.remove(task);
     }
 
-    public int getProjectStatus() {
+    public double getProjectStatus() {
         // TODO: Von allen Tasks in diesem Projekt soll der Projektstatus abgeleitet werden (arithmetisches Mittel)
-        return 0;
+        return 0.0;
     }
 }
