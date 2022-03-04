@@ -15,6 +15,10 @@ public class Task {
     }
 
     // Methoden
+    public int getStatus() {
+        return status;
+    }
+
     public String getStatusAsPerc() {
         return status + "%";
     }

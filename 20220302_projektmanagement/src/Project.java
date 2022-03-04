@@ -14,7 +14,16 @@ public class Project {
     }
 
     public double getProjectStatus() {
-        // TODO: Von allen Tasks in diesem Projekt soll der Projektstatus abgeleitet werden (arithmetisches Mittel)
-        return 0.0;
+        // Von allen Tasks in diesem Projekt soll der Projektstatus abgeleitet werden (arithmetisches Mittel)
+
+        // Summe von Task-Fortschritten
+        double summe = 0.0;
+        for(int i = 0; i < this.tasks.size(); i++) {
+            Task currentTask = this.tasks.get(i);
+            summe += currentTask.getStatus();
+        } // Summe ist > 0.0, falls es mehr als einen Task mit Status > 0 % gibt
+        
+        // Teilen durch Anzahl
+        return summe / this.tasks.size();
     }
 }

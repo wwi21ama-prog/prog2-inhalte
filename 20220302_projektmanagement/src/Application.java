@@ -15,10 +15,15 @@ public class Application {
         t1.setStatus(29);
         Task t2 = new Task(u2, "Task 2");
         /*t2.description = "Task 2";
-        t2.processor = u2;*/ 
+        t2.processor = u2;*/
         t2.setStatus(100);
+        Task t3 = new Task(u2, "Task 3");
+        t3.setStatus(54);
         p1.addTask(t1);
         p1.addTask(t2);
+        p1.addTask(t3);
+
+        System.out.println("Der Projekstatus für Projekt 1 ist: " + p1.getProjectStatus()); // Erwartungswert: 61.0
 
         System.out.println(t1.getStatusAsPerc());
         System.out.println(t2.getStatusAsPerc());
