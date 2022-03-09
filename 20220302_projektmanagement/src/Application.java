@@ -3,9 +3,13 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Application {
+    // Attribute/Variablen, die von allen Methoden benötigt werden
+    static Scanner inputScanner = new Scanner(System.in);
+
     public static void main(String[] args) {
-        // testInputs();
+        // testInputs(); // der Code war nur zum Testen in der letzten Vorlesung gedacht
         List<User> allUsers = new ArrayList<>();
+        List<Project> allProjects = new ArrayList<>();
 
         // 1. Schleife
         while (true) {
@@ -15,10 +19,10 @@ public class Application {
             System.out.println("(3) Aufgabe anlegen");
             System.out.println("(e) Programm beenden");
             // 1.1 Auf Benutzereingabe warten
-            Scanner inputScanner = new Scanner(System.in);
             String userInput = inputScanner.nextLine();
             System.out.println("Der Benutzer möchte folgende Aktion durchführen: " + userInput);
             // 1.2 Entscheidung, welche Anweisung ausgeführt werden muss
+
         /* if (userInput.equals("1")) {
             System.out.println("Aktion ist 1");
         } else if (userInput.equals("2")) {
@@ -27,13 +31,14 @@ public class Application {
             System.out.println("Aktion ist 3");
         } else {
             System.out.println("Andere Aktion");
-        }*/
+        }*/ // das ist nicht so gut lesbar wie ein "switch"-Konstrukt
 
             switch (userInput) {
                 // case "p":
                 // case "anlegen":
                 // case "projekt":
                 case "1": // Benutzer anlegen
+                    System.out.println("--- Neuen Benutzer anlegen ---");
                     System.out.println("Wie heißt der Benutzer mit Vornamen?");
                     String firstname = inputScanner.nextLine();
                     System.out.println("Wie heißt der Benutzer mit Nachname?");
@@ -49,20 +54,106 @@ public class Application {
                     allUsers.add(newUser);
                     System.out.println("Es wurde(n) bereits " + allUsers.size() + " Benutzer registriert.");
                     break;
-                case "2": // Projekt anlegen
-                    // TODO: Projekt anlegen und Verantwortlichen zuweisen
+                case "2": // Projekt anlegen und Verantwortlichen zuweisen
+                    System.out.println("--- Neues Projekt anlegen ---");
+                    System.out.println("Wer soll für das Projekt verantwortlich sein?");
+                    User manager = askForUser(allUsers);
+                    if (manager == null) { // kein valider Benutzer ausgewählt
+                        System.err.println("Der angegebene Benutzer wurde nicht gefunden. Projekterstellung abgebrochen.");
+                        break;
+                    }
+                    Project newProject = new Project();
+                    newProject.manager = manager;
+                    allProjects.add(newProject);
+                    // wir müssen die project.tasks nicht explizit setzen, da diese bei Erzeugung eines Objekts mit
+                    // einer leeren ArrayList initialisiert werden
+                    System.out.println("Es wurde(n) bereits " + allProjects.size() + " Projekte registriert.");
                     break;
-                case "3": // Aufgabe anlegen
-                    // TODO: Aufgabe anlegen und zu Projekt hinzufügen
+                case "3": // Aufgabe anlegen und zu Projekt hinzufügen
+                    System.out.println("--- Neue Aufgabe anlegen ---");
+                    System.out.println("Zu welchem Projekt soll die Aufgabe hinzugefügt werden?");
+                    Project project = askForProject(allProjects);
+                    if (project == null) { // kein valider Benutzer ausgewählt
+                        System.err.println("Das angegebene Projekt wurde nicht gefunden. Aufgabenerstellung abgebrochen.");
+                        break;
+                    }
+                    System.out.println("Welche Beschreibung soll für die Aufgabe hinterlegt werden?");
+                    String taskDescription = inputScanner.nextLine();
+                    System.out.println("Wer soll für die Aufgabe verantwortlich sein?");
+                    User processor = askForUser(allUsers);
+                    if (processor == null) { // kein valider Benutzer ausgewählt
+                        System.err.println("Der angegebene Benutzer wurde nicht gefunden. Aufgabenerstellung abgebrochen.");
+                        break;
+                    }
+                    Task newTask = new Task(processor, taskDescription);
+                    // Wir benötigen keine "allTasks"-Liste, da jeder Task zu genau einem Projekt gehört.
+                    // Deshalb reicht es, den Task dem jeweiligen Projekt hinzufügen.
+                    project.addTask(newTask);
+                    System.out.println("Das gewählte Projekt besitzt " + project.tasks.size() + " Aufgaben.");
                     break;
-                case "e":
-                    // TODO: Programm beenden
-                    break;
+                case "e": // Programm beenden
+                    // Alternative: System.exit(0);
+                    return; // beendet auch die main()-Methode
                 default: // Fehlerbehandlung
-                    System.out.println("Die Eingabe ist kein gültiger Befehl, bitte versuche es nochmal!");
+                    System.err.println("Die Eingabe ist kein gültiger Befehl, bitte versuche es nochmal!");
             }
-            // 1.3 gewählte Anweisung ausführen
-            // 1.4 Rückmeldung an den Benutzer
+
+            System.out.println("------");
+            System.out.println(); // leere Zeile zur übersichtlicheren Darstellung einfügen
+        }
+    }
+
+    private static User askForUser(List<User> allUsers) {
+        System.out.println("Folgende Benutzer sind im System vorhanden:");
+
+        for (int i = 0; i < allUsers.size(); i++) {
+            User theUser = allUsers.get(i);
+            System.out.println((i + 1) + ") " + theUser.firstname + " " + theUser.lastname + " (" + theUser.username + ")");
+        }
+
+        System.out.println("Welcher Benutzer soll ausgewählt werden (Index eingeben)?");
+        // durch try {} catch {} fangen wir alle Ausnahmen (Exceptions) ab, die bei einer fehlerhaften Eingabe
+        // (bspw. einem String) sonst zum Absturz des Programms führen würden
+        try {
+            int userIndex = inputScanner.nextInt();
+            // da wir oben zur einfacheren Darstellung bei 1 anfangen (i + 1),
+            // müssen wir hier (i - 1) rechnen, um den korrekten Index zu erhalten
+            userIndex = userIndex - 1;
+            if (userIndex < 0 || userIndex >= allUsers.size()) {
+                System.err.println("Der Benutzer mit dem Index " + userIndex + "existiert nicht");
+                return null;
+            }
+            return allUsers.get(userIndex);
+        } catch (Exception e) {
+            System.err.println("Ungültiger Benutzerindex!");
+            return null;
+        }
+    }
+
+    private static Project askForProject(List<Project> allProjects) {
+        System.out.println("Folgende Projekte sind im System vorhanden:");
+
+        for (int i = 0; i < allProjects.size(); i++) {
+            Project theProject = allProjects.get(i);
+            System.out.println((i + 1) + ") geleitet von " + theProject.manager.firstname + " " + theProject.manager.firstname + " (" + theProject.manager.username + ")");
+        }
+
+        System.out.println("Welches Projekt soll ausgewählt werden (Index eingeben)?");
+        // durch try {} catch {} fangen wir alle Ausnahmen (Exceptions) ab, die bei einer fehlerhaften Eingabe
+        // (bspw. einem String) sonst zum Absturz des Programms führen würden
+        try {
+            int projectIndex = inputScanner.nextInt();
+            // da wir oben zur einfacheren Darstellung bei 1 anfangen (i + 1),
+            // müssen wir hier (i - 1) rechnen, um den korrekten Index zu erhalten
+            projectIndex = projectIndex - 1;
+            if (projectIndex < 0 || projectIndex >= allProjects.size()) {
+                System.err.println("Das Projekt mit dem Index " + projectIndex + "existiert nicht");
+                return null;
+            }
+            return allProjects.get(projectIndex);
+        } catch (Exception e) {
+            System.err.println("Ungültiger Projektindex!");
+            return null;
         }
     }
 
