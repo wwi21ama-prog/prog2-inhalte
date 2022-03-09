@@ -22,7 +22,7 @@ public class Project {
             Task currentTask = this.tasks.get(i);
             summe += currentTask.getStatus();
         } // Summe ist > 0.0, falls es mehr als einen Task mit Status > 0 % gibt
-        
+
         // Teilen durch Anzahl
         return summe / this.tasks.size();
     }
