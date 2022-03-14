@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Application {
@@ -10,13 +11,16 @@ public class Application {
         // testInputs(); // der Code war nur zum Testen in der letzten Vorlesung gedacht
         List<User> allUsers = new ArrayList<>();
         List<Project> allProjects = new ArrayList<>();
+        List<UserGroup> allUserGroups = new ArrayList<>();
 
         // 1. Schleife
         while (true) {
             System.out.println("Folgende Optionen sind möglich:");
+            System.out.println("(g) Benutzergruppen anlegen");
             System.out.println("(1) Benutzer anlegen");
             System.out.println("(2) Projekt anlegen");
             System.out.println("(3) Aufgabe anlegen");
+            System.out.println("(4) Projektstatus abfragen");
             System.out.println("(e) Programm beenden");
             // 1.1 Auf Benutzereingabe warten
             String userInput = inputScanner.nextLine();
@@ -34,6 +38,17 @@ public class Application {
         }*/ // das ist nicht so gut lesbar wie ein "switch"-Konstrukt
 
             switch (userInput) {
+                case "g": // Benutzergruppen anlegen
+                    System.out.println("--- Benutzergruppe anlegen ---");
+                    System.out.println("Wie soll die Benutzergruppe heißen?");
+                    String userGroupName = inputScanner.nextLine();
+
+                    UserGroup userGroup = new UserGroup();
+                    userGroup.name = userGroupName;
+
+                    allUserGroups.add(userGroup);
+                    System.out.println("Es wurde(n) bereits " + allUserGroups.size() + " Benutzergruppen registriert.");
+                    break;
                 // case "p":
                 // case "anlegen":
                 // case "projekt":
@@ -46,10 +61,18 @@ public class Application {
                     System.out.println("Wie soll der Benutzername lauten?");
                     String username = inputScanner.nextLine();
 
+                    UserGroup theUserGroup = askForUserGroup(allUserGroups);
+                    if (theUserGroup == null) { // keine valide Benutzergruppe ausgewählt
+                        System.err.println("Die angegebene Benutzergruppe wurde nicht gefunden. Benutzererstellung abgebrochen.");
+                        break;
+                    }
+
                     User newUser = new User();
                     newUser.firstname = firstname;
                     newUser.lastname = lastname;
                     newUser.username = username;
+
+                    theUserGroup.users.add(newUser);
 
                     allUsers.add(newUser);
                     System.out.println("Es wurde(n) bereits " + allUsers.size() + " Benutzer registriert.");
@@ -64,7 +87,16 @@ public class Application {
                     }
                     Project newProject = new Project();
                     newProject.manager = manager;
+
+                    UserGroup projectUserGroup = askForUserGroup(allUserGroups);
+                    if (projectUserGroup == null) { // keine valide Benutzergruppe ausgewählt
+                        System.err.println("Die angegebene Benutzergruppe wurde nicht gefunden. Projekterstellung abgebrochen.");
+                        break;
+                    }
+                    newProject.userGroup = projectUserGroup;
+
                     allProjects.add(newProject);
+
                     // wir müssen die project.tasks nicht explizit setzen, da diese bei Erzeugung eines Objekts mit
                     // einer leeren ArrayList initialisiert werden
                     System.out.println("Es wurde(n) bereits " + allProjects.size() + " Projekte registriert.");
@@ -86,10 +118,29 @@ public class Application {
                         break;
                     }
                     Task newTask = new Task(processor, taskDescription);
+
+                    // Wir gehen erst einmal davon aus, dass der Aufgabenbearbeiter der aktuelle Benutzer ist
+                    if (project.reserveProject(processor)) {
+                        System.out.println("Projekt-Status: " + project.getProjectStatus());
+                    }
+
                     // Wir benötigen keine "allTasks"-Liste, da jeder Task zu genau einem Projekt gehört.
                     // Deshalb reicht es, den Task dem jeweiligen Projekt hinzufügen.
                     project.addTask(newTask);
+                    project.freeProject(); // Projekt wieder freigeben, damit der nächste Benutzer damit arbeiten kann
+
                     System.out.println("Das gewählte Projekt besitzt " + project.tasks.size() + " Aufgaben.");
+                    break;
+                case "4": // Projektstatus abfragen
+                    System.out.println("--- Projektstatus abfragen ---");
+                    System.out.println("Welcher Benutzer ist angemeldet?"); // für Prüfung der Gruppenzugehörigkeit abfragen
+                    User accessor = askForUser(allUsers);
+                    System.out.println("Zu welchem Projekt soll der Status angezeigt werden?");
+                    Project focusProject = askForProject(allProjects);
+                    if (focusProject.reserveProject(accessor)) {
+                        System.out.println("Projekt-Status: " + focusProject.getProjectStatus());
+                    }
+                    focusProject.freeProject(); // Projekt wieder freigeben, damit der nächste Benutzer damit arbeiten kann
                     break;
                 case "e": // Programm beenden
                     // Alternative: System.exit(0);
@@ -103,6 +154,12 @@ public class Application {
         }
     }
 
+    /**
+     * Präsentiert dem Benutzer alle registrierten Benutzer und wartet auf eine Auswahl (über den Index)
+     *
+     * @param allUsers
+     * @return
+     */
     private static User askForUser(List<User> allUsers) {
         System.out.println("Folgende Benutzer sind im System vorhanden:");
 
@@ -130,6 +187,12 @@ public class Application {
         }
     }
 
+    /**
+     * Präsentiert dem Benutzer alle registrierten Projekte und wartet auf eine Auswahl (über den Index)
+     *
+     * @param allProjects
+     * @return
+     */
     private static Project askForProject(List<Project> allProjects) {
         System.out.println("Folgende Projekte sind im System vorhanden:");
 
@@ -153,6 +216,39 @@ public class Application {
             return allProjects.get(projectIndex);
         } catch (Exception e) {
             System.err.println("Ungültiger Projektindex!");
+            return null;
+        }
+    }
+
+    /**
+     * Präsentiert dem Benutzer alle registrierten Benutzergruppen und wartet auf eine Auswahl (über den Index)
+     *
+     * @param allUserGroups
+     * @return
+     */
+    private static UserGroup askForUserGroup(List<UserGroup> allUserGroups) {
+        System.out.println("Folgende Benutzergruppen sind im System vorhanden:");
+
+        for (int i = 0; i < allUserGroups.size(); i++) {
+            UserGroup userGroup = allUserGroups.get(i);
+            System.out.println((i + 1) + ") " + userGroup.name);
+        }
+
+        System.out.println("Welche Benutzergruppe soll ausgewählt werden (Index eingeben)?");
+        // durch try {} catch {} fangen wir alle Ausnahmen (Exceptions) ab, die bei einer fehlerhaften Eingabe
+        // (bspw. einem String) sonst zum Absturz des Programms führen würden
+        try {
+            int userGroupIndex = inputScanner.nextInt();
+            // da wir oben zur einfacheren Darstellung bei 1 anfangen (i + 1),
+            // müssen wir hier (i - 1) rechnen, um den korrekten Index zu erhalten
+            userGroupIndex = userGroupIndex - 1;
+            if (userGroupIndex < 0 || userGroupIndex >= allUserGroups.size()) {
+                System.err.println("Die Benutzergruppe mit dem Index " + userGroupIndex + "existiert nicht");
+                return null;
+            }
+            return allUserGroups.get(userGroupIndex);
+        } catch (Exception e) {
+            System.err.println("Ungültige Benutzergruppe!");
             return null;
         }
     }
